@@ -1,0 +1,113 @@
+h1.CakePHP Oredered List Plugin
+
+This is a simple plugin for cakephp that provides the basic capabilities for sorting and reordering records in a database table.
+It needs to have a "position" column (or another specified column) defined as an integer on the table.
+
+Features list:
+
+- OrderBehavior
+
+- OrderedListAppController
+
+- OrderHelper
+
+
+h3.SIMPLE EXAMPLE:
+==================
+
+We have to sort a `travels` table with a `position` column defined as an integer.
+
+So we have to follow theese steps:
+
+
+1. Extract the plugin in the cakephp plugin folder
+=====================================================
+
+/app/plugins/ordered_list
+
+
+2. Edit the travel model
+=====================================================
+
+The plugin provides for an OrderBehavior, than we attach it in the model:
+
+/app/model/travel.php
+
+<?php
+class Travel extends AppModel {
+
+    public $name = 'Travel';
+
+    public $actsAs = array('OrderedList.order');
+
+}
+?>
+
+If you want to use another coloumn, you can specify it as an actsAs parameter
+
+public $actsAs = array('OrderedList.order' => array('field' => 'your_coloum'));
+
+
+3. Edit the travel controller
+=====================================================
+
+App::import('Controller', 'OrderedList.OrderedListAppController');
+class TravelsController extends OrderedListAppController {
+
+	public $name = 'Travels';
+	public $helpers = array('OrderedList.Order');
+
+
+
+    [... your methods ...]
+
+}
+
+
+4. Edit the travel admin_index view
+=====================================================
+
+<table cellpadding="0" cellspacing="0">
+<tr>
+	<th><?php echo $paginator->sort('id');?></th>
+	<th><?php echo $paginator->sort('title');?></th>
+	<th><?php echo $paginator->sort('position');?></th>
+	<th class="actions"><?php __('Actions');?></th>
+</tr>
+<?php
+$i = 0;
+foreach ($travels as $travel):
+	$class = null;
+	if ($i++ % 2 == 0) {
+		$class = ' class="altrow"';
+	}
+?>
+	<tr<?php echo $class;?>>
+		<td>
+			<?php echo $travel['Travel']['id']; ?>
+		</td>
+		<td>
+			<?php echo $travel['Travel']['title']; ?>
+		</td>
+		<td>
+            <?php echo $order->selectBox($travel['Travel']['id'], $travel['Travel']['position'], $positionsList); ?>
+		</td>
+		<td class="actions">
+			<?php echo $html->link(__('View', true), array('action'=>'view', $travel['Travel']['id'])); ?>
+			<?php echo $html->link(__('Edit', true), array('action'=>'edit', $travel['Travel']['id'])); ?>
+			<?php echo $html->link(__('Delete', true), array('action'=>'delete', $travel['Travel']['id']), null, sprintf(__('Are you sure?\n\t # %s', true), $travel['Travel']['title'])); ?>
+		</td>
+	</tr>
+<?php endforeach; ?>
+</table>
+
+=====================================================
+
+This is all...
+
+$positionsList variable gets the lists of all positions in the OrderedListAppController::beforeRender() method..
+
+
+
+
+
