@@ -4,9 +4,9 @@
  *  @author Andrea Dal Ponte (dalpo85@gmail.com)
  *  @link none
  *  @filesource none
- *  @version 0.1
+ *  @version 0.2
  *  @modifiedby      $LastChangedBy: dalpo85@gmail.com
- *  @lastmodified    $Date:2009/06/18$
+ *  @lastmodified    $Date:2009/08/06$
  *
  *  Version Details
  *
@@ -26,7 +26,8 @@ class OrderBehavior extends ModelBehavior {
     function setup(&$model, $config = array()) {
         $settings = am($this->_defaultSettings, $config);
         $this->settings[$model->alias] = $settings;
-        $this->_scope = $settings['scope'];
+        $model->_orderedScope = $this->_scope = $settings['scope'];
+
     }
 
     /**
@@ -181,16 +182,28 @@ class OrderBehavior extends ModelBehavior {
 
     function moveBottom(&$model) {
         if($model->id) {
+            $conditions = array();
+            if($this->_scope) {
+                $entity = $this->read();
+                $conditions["{$model->alias}.{$this->_scope}"] = $entity[$model->alias][$this->_scope];
+            }
             $this->moveTo(&$model, $model->find('count'));
         }
     }
 
+
+    /*
+     * and with the scope??
+     * find a solution...
+     */
     function positionsList(&$model) {
+        $order = array();
+        $order["{$model->alias}.{$this->settings[$model->alias]['field']}"] = 'ASC';
         return $model->find(
             'list',
             array(
                 'fields' => array($this->settings[$model->alias]['field'], $this->settings[$model->alias]['field']),
-                'order' => array($this->settings[$model->alias]['field'] => 'ASC')
+                'order' => $order
             )
         );
     }

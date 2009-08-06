@@ -1,7 +1,14 @@
 <?php
 class OrderedListAppController extends AppController {
 
-    public $helpers = array('OrderedList.Order');
+    public      $helpers = array('OrderedList.Order');
+    public      $OrderedModel = null;
+    protected   $positionsListAutoload = true;
+
+    function beforeFilter() {
+        parent::beforeFilter();
+        $this->OrderedModel =& $this->_getOrderedModel();
+    }
 
     function beforeRender() {
         parent::beforeRender();
@@ -9,13 +16,11 @@ class OrderedListAppController extends AppController {
     }
     
     function order() {
-        //Do I get the first model?
-        $model = $this->uses[0];
         $id = (int)$this->data[$model]['id'];
         $position = (int)$this->data[$model]['position'];
 
-        $this->{$model}->id = $id;
-        $this->{$model}->moveTo($position);
+        $this->OrderedModel->id = $id;
+        $this->OrderedModel->moveTo($position);
         if(isset($this->data[$model]['previous_url'])) {
             $this->redirect($this->data[$model]['previous_url']);
         } else {
@@ -27,20 +32,27 @@ class OrderedListAppController extends AppController {
      * Reorder all record by id ASC
      */
     function reorder() {
-        $model = $this->uses[0];
-        $this->{$model}->reorder();
+        $this->OrderedModel->reorder();
         $this->redirect(array('action' => 'index'));
     }
 
     function admin_reorder() {
-        $model = $this->uses[0];
-        $this->{$model}->reorder();
+        $this->OrderedModel->reorder();
         $this->redirect(array('action' => 'index'));
     }
 
-    protected function _positionsList() {
+    /**
+     * @fixme this is a bad way...
+     */
+    protected function _getOrderedModel() {
         $model = $this->uses[0];
-        $this->set('positionsList', $this->{$model}->positionsList());
+        return $this->{$model};
+    }
+
+    protected function _positionsList() {
+        if(!$this->OrderedModel->_orderedScope && $this->positionsListAutoload) {
+            $this->set('positionsList', $this->OrderedModel->positionsList());
+        }
     }
 
 }
