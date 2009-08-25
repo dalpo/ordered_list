@@ -1,7 +1,6 @@
 <?php
 class OrderedListAppController extends AppController {
 
-    public      $helpers = array('OrderedList.Order');
     public      $OrderedModel = null;
     protected   $positionsListAutoload = true;
 
@@ -16,13 +15,13 @@ class OrderedListAppController extends AppController {
     }
     
     function order() {
-        $id = (int)$this->data[$model]['id'];
-        $position = (int)$this->data[$model]['position'];
+        $id = (int)$this->data[$this->OrderedModel->alias]['id'];
+        $position = (int)$this->data[$this->OrderedModel->alias]['position'];
 
         $this->OrderedModel->id = $id;
         $this->OrderedModel->moveTo($position);
-        if(isset($this->data[$model]['previous_url'])) {
-            $this->redirect($this->data[$model]['previous_url']);
+        if(isset($this->data[$this->OrderedModel->alias]['previous_url'])) {
+            $this->redirect($this->data[$this->OrderedModel->alias]['previous_url']);
         } else {
             $this->redirect(array('action' => 'index'));
         }

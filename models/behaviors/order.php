@@ -35,7 +35,7 @@ class OrderBehavior extends ModelBehavior {
      */
 
     function afterSave(&$model, $created) {
-        parent::afterSave(&$model, $created);
+        parent::afterSave($model, $created);
         if($created) {
             if($this->_scope) {
                 $position = (int)$model->find(
@@ -61,14 +61,14 @@ class OrderBehavior extends ModelBehavior {
     }
 
     function beforeDelete(&$model) {
-        parent::beforeDelete(&$model);
+        parent::beforeDelete($model);
         $model->recursive = -1;
         $this->_entity = $model->read();
         return true;
     }
 
     function afterDelete(&$model) {
-        parent::beforeDelete(&$model);
+        parent::afterDelete($model);
         if($this->_entity && $this->_entity[$model->alias][$model->primaryKey] == $model->id) {
             $conditions = array(
                 "{$model->alias}.{$this->settings[$model->alias]['field']} >" => $this->_entity[$model->alias][$this->settings[$model->alias]['field']]
@@ -117,6 +117,7 @@ class OrderBehavior extends ModelBehavior {
                 if(isset($position[$record[$model->alias][$this->_scope]])) {
                     $updateValue = ++$position[$record[$model->alias][$this->_scope]];
                 } else {
+                    //SIAMO SICURI?? $updateValue NON DOVREBBE ESSERE 1 IN QUESTO CASO??
                     $updateValue = $position[$record[$model->alias][$this->_scope]] = 0;
                 }
             } else {
@@ -128,7 +129,7 @@ class OrderBehavior extends ModelBehavior {
     }
 
     function reorder(&$model) {
-        $this->reorderByField(&$model);
+        $this->reorderByField($model);
     }
 
     function moveTo(&$model, $position = 1) {
@@ -176,18 +177,18 @@ class OrderBehavior extends ModelBehavior {
 
     function moveTop(&$model) {
         if($model->id) {
-            $this->moveTo(&$model, 1);
+            $this->moveTo($model, 1);
         }
     }
 
-    function moveBottom(&$model) {
+    function moveBottom($model) {
         if($model->id) {
             $conditions = array();
             if($this->_scope) {
                 $entity = $this->read();
                 $conditions["{$model->alias}.{$this->_scope}"] = $entity[$model->alias][$this->_scope];
             }
-            $this->moveTo(&$model, $model->find('count'));
+            $this->moveTo($model, $model->find('count', array('conditions' => $conditions)));
         }
     }
 
