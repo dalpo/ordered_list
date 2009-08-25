@@ -118,7 +118,7 @@ class OrderBehavior extends ModelBehavior {
                     $updateValue = ++$position[$record[$model->alias][$this->_scope]];
                 } else {
                     //SIAMO SICURI?? $updateValue NON DOVREBBE ESSERE 1 IN QUESTO CASO??
-                    $updateValue = $position[$record[$model->alias][$this->_scope]] = 0;
+                    $updateValue = $position[$record[$model->alias][$this->_scope]] = 1;
                 }
             } else {
                 $updateValue = ++$position;
@@ -198,15 +198,36 @@ class OrderBehavior extends ModelBehavior {
      * find a solution...
      */
     function positionsList(&$model) {
-        $order = array();
-        $order["{$model->alias}.{$this->settings[$model->alias]['field']}"] = 'ASC';
-        return $model->find(
-            'list',
-            array(
-                'fields' => array($this->settings[$model->alias]['field'], $this->settings[$model->alias]['field']),
-                'order' => $order
-            )
-        );
+        if($this->_scope) {
+            $order = array(
+                "{$model->alias}.{$this->_scope}" => 'ASC',
+                "{$model->alias}.{$this->settings[$model->alias]['field']}" => 'ASC'
+            );
+            
+            return $model->find(
+                'list',
+                array(
+                    'fields' => array(
+                        "{$model->alias}.{$this->settings[$model->alias]['field']}",
+                        "{$model->alias}.{$this->settings[$model->alias]['field']}",
+                        "{$model->alias}.{$this->_scope}"
+                    ),
+                    'order' => $order
+                )
+            );
+        } else {
+            $order = array("{$model->alias}.{$this->settings[$model->alias]['field']}" => 'ASC');
+            return $model->find(
+                'list',
+                array(
+                    'fields' => array(
+                        "{$model->alias}.{$this->settings[$model->alias]['field']}",
+                        "{$model->alias}.{$this->settings[$model->alias]['field']}"
+                    ),
+                    'order' => $order
+                )
+            );
+        }
     }
 
 

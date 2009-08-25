@@ -49,7 +49,8 @@ class OrderedListAppController extends AppController {
     }
 
     protected function _positionsList() {
-        if(!$this->OrderedModel->_orderedScope && $this->positionsListAutoload) {
+        //if(!$this->OrderedModel->_orderedScope && $this->positionsListAutoload) {
+        if($this->positionsListAutoload) {
             $this->set('positionsList', $this->OrderedModel->positionsList());
         }
     }
