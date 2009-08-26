@@ -15,7 +15,7 @@ Features list:
 h3.SIMPLE EXAMPLE:
 ==================
 
-We have to sort a `travels` table with a `position` column defined as an integer.
+We have to sort a `travels` table with the `position` column defined as an integer.
 
 So we have to follow theese steps:
 
@@ -29,7 +29,8 @@ So we have to follow theese steps:
 2. Edit the travel model
 =====================================================
 
-The plugin provides for an OrderBehavior, than we attach it in the model:
+The plugin provides for an OrderBehavior..
+than we attach it to the model:
 
 /app/model/travel.php
 
@@ -43,9 +44,14 @@ class Travel extends AppModel {
 }
 ?>
 
-If you want to use another coloumn, you can specify it as an actsAs parameter
+If you want to use another coloumn or a scope to order yours records, you could specify it as an actsAs parameter:
 
-public $actsAs = array('OrderedList.order' => array('field' => 'your_coloum'));
+public $actsAs = array(
+	'OrderedList.order' => array(
+		'field' => 'your_coloum'
+		'scope' => 'category_id'
+	)
+);
 
 
 3. Edit the travel controller
@@ -90,7 +96,11 @@ foreach ($travels as $travel):
 			<?php echo $travel['Travel']['title']; ?>
 		</td>
 		<td>
-            <?php echo $order->selectBox($travel['Travel']['id'], $travel['Travel']['position'], $positionsList); ?>
+                        <?php echo $order->selectBox($travel['Travel']['id'], $travel['Travel']['position'], $positionsList); ?>
+			<?php 
+			      //if you use a scope filter, for instance the `category_id` field:
+			      //echo $order->selectBox(travel['Travel']['id'], travel['Travel']['position'], $positionsList[$travel['Travel']['category_id']]);
+			?> 
 		</td>
 		<td class="actions">
 			<?php echo $html->link(__('View', true), array('action'=>'view', $travel['Travel']['id'])); ?>

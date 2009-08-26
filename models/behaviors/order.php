@@ -193,10 +193,6 @@ class OrderBehavior extends ModelBehavior {
     }
 
 
-    /*
-     * and with the scope??
-     * find a solution...
-     */
     function positionsList(&$model) {
         if($this->_scope) {
             $order = array(
