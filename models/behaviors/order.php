@@ -4,20 +4,20 @@
  *  @author Andrea Dal Ponte (dalpo85@gmail.com)
  *  @link none
  *  @filesource none
- *  @version 0.2
+ *  @version 0.3
  *  @modifiedby      $LastChangedBy: dalpo85@gmail.com
- *  @lastmodified    $Date:2009/08/06$
+ *  @lastmodified    $Date:2009/08/28$
  *
  *  Version Details
  *
- *
+ *  - Scope Support
  *
  */
 class OrderBehavior extends ModelBehavior {
 
     protected $_defaultSettings = array(
-              'field' => 'position',
-              'scope' => null
+    'field' => 'position',
+    'scope' => null
     );
 
     protected $_entity = null;
@@ -34,27 +34,64 @@ class OrderBehavior extends ModelBehavior {
      * Callbacks
      */
 
+    function beforeSave(&$model) {
+        parent::beforeSave($model);
+        if($model->id) {
+            $model->recursive = -1;
+            $this->_entity = $model->find('first', array('conditions' => array("{$model->alias}.{$model->primaryKey}" => $model->id)));
+        }
+        return true;
+    }
+
     function afterSave(&$model, $created) {
         parent::afterSave($model, $created);
         if($created) {
             if($this->_scope) {
                 $position = (int)$model->find(
                     'count',
-                    array('conditions' => array($model->data[$model->alias].'.'.$this->_scope => $model->data[$model->alias][$this->_scope]))
+                    array('conditions' => array($model->alias.'.'.$this->_scope => $model->data[$model->alias][$this->_scope]))
                 );
             } else {
                 $position = (int)$model->find('count');
             }
-            
+
             $saveOptions = array(
                 'validate'  => false,
                 'fieldList' => array($this->settings[$model->alias]['field']),
                 'callbacks' => false
-            );            
+            );
             $id = $model->id;
             $data = array($model->alias => array($model->primaryKey => $id, $this->settings[$model->alias]['field'] => $position));
-            $model->save($data, $saveOptions);            
+            $model->save($data, $saveOptions);
+        } else {
+            //If there is a different scope value:
+            if($this->_scope && ($this->_entity[$model->alias][$this->_scope] != $model->data[$model->alias][$this->_scope])) {
+                //new position
+                $position = (int)$model->find(
+                    'count',
+                    array('conditions' => array($model->alias.'.'.$this->_scope => $model->data[$model->alias][$this->_scope]))
+                );
+
+                $model->updateAll(
+                    array("{$model->alias}.{$this->settings[$model->alias]['field']}" => "{$model->alias}.{$this->settings[$model->alias]['field']} - 1"),
+                    array(
+                        "{$model->alias}.{$this->_scope}" => $this->_entity[$model->alias][$this->_scope],
+                        "{$model->alias}.{$this->settings[$model->alias]['field']} >" => $this->_entity[$model->alias][$this->settings[$model->alias]['field']]
+                    )
+                );
+
+                $saveOptions = array(
+                    'validate'  => false,
+                    'fieldList' => array($this->settings[$model->alias]['field']),
+                    'callbacks' => false
+                );
+
+                $id = $model->id;
+                $data = array($model->alias => array($model->primaryKey => $id, $this->settings[$model->alias]['field'] => $position));
+                $model->save($data, $saveOptions);
+            }
         }
+        $this->_entity = null;
         $model->recursive = -1;
         $model->read();
         return true;
@@ -102,8 +139,8 @@ class OrderBehavior extends ModelBehavior {
         }
         $results = $model->find(
             'all', array(
-                'fields'=> $fields,
-                'order' => array($field => $direction)
+            'fields'=> $fields,
+            'order' => array($field => $direction)
             )
         );
         $saveOptions = array(
@@ -117,7 +154,6 @@ class OrderBehavior extends ModelBehavior {
                 if(isset($position[$record[$model->alias][$this->_scope]])) {
                     $updateValue = ++$position[$record[$model->alias][$this->_scope]];
                 } else {
-                    //SIAMO SICURI?? $updateValue NON DOVREBBE ESSERE 1 IN QUESTO CASO??
                     $updateValue = $position[$record[$model->alias][$this->_scope]] = 1;
                 }
             } else {
@@ -135,7 +171,7 @@ class OrderBehavior extends ModelBehavior {
     function moveTo(&$model, $position = 1) {
         if($model->id) {
             $this->_entity = $model->read();
-            $oldPosition = $this->_entity[$model->alias][$this->settings[$model->alias]['field']];            
+            $oldPosition = $this->_entity[$model->alias][$this->settings[$model->alias]['field']];
             if($position > $oldPosition) {
                 $conditions = array(
                     "{$model->alias}.{$this->settings[$model->alias]['field']} >" => $oldPosition,
@@ -193,35 +229,39 @@ class OrderBehavior extends ModelBehavior {
     }
 
 
+    /*
+     * and with the scope??
+     * find a solution...
+     */
     function positionsList(&$model) {
         if($this->_scope) {
             $order = array(
                 "{$model->alias}.{$this->_scope}" => 'ASC',
                 "{$model->alias}.{$this->settings[$model->alias]['field']}" => 'ASC'
             );
-            
+
             return $model->find(
-                'list',
-                array(
-                    'fields' => array(
-                        "{$model->alias}.{$this->settings[$model->alias]['field']}",
-                        "{$model->alias}.{$this->settings[$model->alias]['field']}",
-                        "{$model->alias}.{$this->_scope}"
-                    ),
-                    'order' => $order
-                )
+            'list',
+            array(
+            'fields' => array(
+            "{$model->alias}.{$this->settings[$model->alias]['field']}",
+            "{$model->alias}.{$this->settings[$model->alias]['field']}",
+            "{$model->alias}.{$this->_scope}"
+            ),
+            'order' => $order
+            )
             );
         } else {
             $order = array("{$model->alias}.{$this->settings[$model->alias]['field']}" => 'ASC');
             return $model->find(
-                'list',
-                array(
-                    'fields' => array(
-                        "{$model->alias}.{$this->settings[$model->alias]['field']}",
-                        "{$model->alias}.{$this->settings[$model->alias]['field']}"
-                    ),
-                    'order' => $order
-                )
+            'list',
+            array(
+            'fields' => array(
+            "{$model->alias}.{$this->settings[$model->alias]['field']}",
+            "{$model->alias}.{$this->settings[$model->alias]['field']}"
+            ),
+            'order' => $order
+            )
             );
         }
     }
