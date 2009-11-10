@@ -4,9 +4,9 @@
  *  @author Andrea Dal Ponte (dalpo85@gmail.com)
  *  @link none
  *  @filesource order.php
- *  @version 0.3.5
+ *  @version 0.3.6
  *  @modifiedby      $LastChangedBy: dalpo85@gmail.com
- *  @lastmodified    $Date:2009/11/06$
+ *  @lastmodified    $Date:2009/11/10$
  *
  *  Version Details
  *
@@ -46,12 +46,16 @@ class OrderBehavior extends ModelBehavior {
         $currentScope = $this->getScope($model);
         if($created) {
             if($currentScope) {
-                $position = (int)$model->find(
+                  $position = (int)$model->find(
                     'count',
-                    array('conditions' => array($model->alias.'.'.$currentScope => $model->data[$model->alias][$currentScope]))
-                );
+                    array(
+                      'conditions' => array($model->alias.'.'.$currentScope => $model->data[$model->alias][$currentScope]),
+                      'callbacks' => false
+                    )
+                  );
             } else {
-                $position = (int)$model->find('count');
+                $model->recursive = -1;
+                $position = $model->find('count', array('callbacks' => false));
             }
 
             $saveOptions = array(
@@ -68,7 +72,10 @@ class OrderBehavior extends ModelBehavior {
                 //new position
                 $position = (int)$model->find(
                     'count',
-                    array('conditions' => array($model->alias.'.'.$currentScope => $model->data[$model->alias][$currentScope]))
+                    array(
+                      'conditions' => array($model->alias.'.'.$currentScope => $model->data[$model->alias][$currentScope]),
+                      'callbacks' => false
+                    )
                 );
 
                 $model->updateAll(
@@ -130,6 +137,10 @@ class OrderBehavior extends ModelBehavior {
 
     function reorderByField(&$model, $field = 'id', $direction = 'ASC') {
         $currentScope = $this->getScope($model);
+        $checkField = explode('.', $field);
+        if(count($checkField) == 1) {
+          $field = $model->alias.".".$field;
+        }
         $position = $currentScope ? array() : 0;
         $fields = array(
             "{$model->alias}.{$model->primaryKey}",
@@ -227,7 +238,7 @@ class OrderBehavior extends ModelBehavior {
                 $entity = $this->read();
                 $conditions["{$model->alias}.{$currentScope}"] = $entity[$model->alias][$currentScope];
             }
-            $this->moveTo($model, $model->find('count', array('conditions' => $conditions)));
+            $this->moveTo($model, $model->find('count', array('conditions' => $conditions, 'callbacks' => false)));
         }
     }
 
