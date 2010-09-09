@@ -34,7 +34,7 @@ class OrderHelper extends AppHelper {
         $output = "";
         $output.= $this->Form->create(null, array('url' => $url, 'id' => "OrderedListSelectBox{$id}", 'class' => 'OrderedListForm'));
         $output.= $this->Form->hidden('id', array('value' => $id));
-        $output.= $this->Form->select($field, $positionsList, $position, array('onChange' => 'this.form.submit();'), false);
+        $output.= $this->Form->select($field, $positionsList, $position, array('onChange' => 'this.form.submit();', 'empty' => false), false);
         $output.= $this->Form->hidden('previous_url', array('value' => '/'.$this->params['url']['url']));
         $output.= $this->Form->end(null);
 
