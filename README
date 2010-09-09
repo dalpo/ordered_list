@@ -1,4 +1,4 @@
-h1.CakePHP Oredered List Plugin
+#CakePHP Oredered List Plugin#
 
 This is a simple plugin for cakephp that provides the basic capabilities for sorting and reordering records in a database table.
 It needs to have a "position" column (or another specified column) defined as an integer on the table.
