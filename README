@@ -1,4 +1,4 @@
-#CakePHP Oredered List Plugin#
+CakePHP Oredered List Plugin
 
 This is a simple plugin for cakephp that provides the basic capabilities for sorting and reordering records in a database table.
 It needs to have a "position" column (or another specified column) defined as an integer on the table.
@@ -12,7 +12,7 @@ Features list:
 - OrderHelper
 
 
-h3.SIMPLE EXAMPLE:
+SIMPLE EXAMPLE:
 ==================
 
 We have to sort a `travels` table with the `position` column defined as an integer.
@@ -70,7 +70,7 @@ class TravelsController extends OrderedListAppController {
 }
 
 
-4. Edit the travel admin_index view
+4. Edit the travel index view
 =====================================================
 
 <table cellpadding="0" cellspacing="0">
@@ -98,8 +98,8 @@ foreach ($travels as $travel):
 		<td>
                         <?php echo $order->selectBox($travel['Travel']['id'], $travel['Travel']['position'], $positionsList); ?>
 			<?php 
-			      //if you use a scope filter, for instance the `category_id` field:
-			      //echo $order->selectBox(travel['Travel']['id'], travel['Travel']['position'], $positionsList[$travel['Travel']['category_id']]);
+			      //if you use a scope filter, for instance a `category_id` field:
+			      //echo $order->selectBox($travel['Travel']['id'], travel['Travel']['position'], $positionsList[$travel['Travel']['category_id']]);
 			?> 
 		</td>
 		<td class="actions">
@@ -113,9 +113,10 @@ foreach ($travels as $travel):
 
 =====================================================
 
-This is all...
+That's all...
 
 $positionsList variable gets the lists of all positions in the OrderedListAppController::beforeRender() method..
+
 
 
 
